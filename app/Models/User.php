@@ -18,6 +18,22 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
+     * Relasi ke Keranjang
+     */
+    public function keranjangs()
+    {
+        return $this->hasMany(Keranjang::class);
+    }
+
+    /**
+     * Relasi ke Transaksi
+     */
+    public function transaksis()
+    {
+        return $this->hasMany(Transaksi::class);
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
