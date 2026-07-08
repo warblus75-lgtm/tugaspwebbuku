@@ -1,20 +1,97 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Models\Buku;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\BukuController;
+use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\KeranjangController;
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\TransaksiController;
+
+/*
+|--------------------------------------------------------------------------
+| TEST
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/tes', function () {
+    return 'TES BERHASIL';
+});
+
+/*
+|--------------------------------------------------------------------------
+| HOME
+|--------------------------------------------------------------------------
+*/
 
 Route::get('/', function () {
-    return view('welcome');
+
+    $bukus = Buku::with('kategori')
+        ->latest()
+        ->paginate(8);
+
+    return view('welcome', compact('bukus'));
+
+})->name('home');
+
+/*
+|--------------------------------------------------------------------------
+| ADMIN
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'admin'])->group(function () {
+
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->name('dashboard');
+
+    Route::resource('kategori', KategoriController::class)
+        ->except('show');
+
+    Route::resource('buku', BukuController::class)
+        ->except('show');
+
+    Route::get('/transaksi', [TransaksiController::class, 'index'])
+        ->name('transaksi.index');
+
+    Route::get('/transaksi/{transaksi}', [TransaksiController::class, 'show'])
+        ->name('transaksi.show');
+
+    Route::put('/transaksi/{transaksi}/status',
+        [TransaksiController::class, 'updateStatus'])
+        ->name('transaksi.updateStatus');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+/*
+|--------------------------------------------------------------------------
+| CUSTOMER
+|--------------------------------------------------------------------------
+*/
 
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::resource('keranjang', KeranjangController::class)
+        ->only(['index', 'store', 'destroy']);
+
+    Route::post('/checkout', [CheckoutController::class, 'store'])
+        ->name('checkout.store');
+
+    Route::get('/riwayat', [TransaksiController::class, 'riwayat'])
+        ->name('riwayat.index');
+
+    Route::get('/riwayat/{transaksi}', [TransaksiController::class, 'riwayatDetail'])
+        ->name('riwayat.show');
 });
+
+/*
+|--------------------------------------------------------------------------
+| DETAIL BUKU
+|--------------------------------------------------------------------------
+| Diletakkan paling bawah agar tidak bentrok dengan route resource
+*/
+
+Route::get('/buku/{buku}', [BukuController::class, 'show'])
+    ->name('buku.show');
 
 require __DIR__.'/auth.php';

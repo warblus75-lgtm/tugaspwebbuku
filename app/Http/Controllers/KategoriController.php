@@ -8,14 +8,23 @@ use Illuminate\Http\Request;
 class KategoriController extends Controller
 {
     /**
-     * Menampilkan daftar kategori.
+     * Menampilkan semua data kategori.
      */
-    public function index()
-    {
-        $kategoris = Kategori::latest()->get();
+    public function index(Request $request)
+{
+    $keyword = $request->keyword;
 
-        return view('kategori.index', compact('kategoris'));
-    }
+    $kategoris = Kategori::when($keyword, function ($query) use ($keyword) {
+
+        $query->where('nama_kategori', 'like', '%' . $keyword . '%');
+
+    })
+    ->latest()
+    ->paginate(10)
+    ->withQueryString();
+
+    return view('kategori.index', compact('kategoris'));
+}
 
     /**
      * Menampilkan form tambah kategori.
@@ -30,14 +39,15 @@ class KategoriController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'nama_kategori' => 'required|max:255',
-            'deskripsi' => 'nullable',
+        $validated = $request->validate([
+            'nama_kategori' => 'required|string|max:255',
+            'deskripsi'     => 'nullable|string',
         ]);
 
-        Kategori::create($request->all());
+        Kategori::create($validated);
 
-        return redirect()->route('kategori.index')
+        return redirect()
+            ->route('kategori.index')
             ->with('success', 'Kategori berhasil ditambahkan.');
     }
 
@@ -50,18 +60,19 @@ class KategoriController extends Controller
     }
 
     /**
-     * Mengupdate kategori.
+     * Mengupdate data kategori.
      */
     public function update(Request $request, Kategori $kategori)
     {
-        $request->validate([
-            'nama_kategori' => 'required|max:255',
-            'deskripsi' => 'nullable',
+        $validated = $request->validate([
+            'nama_kategori' => 'required|string|max:255',
+            'deskripsi'     => 'nullable|string',
         ]);
 
-        $kategori->update($request->all());
+        $kategori->update($validated);
 
-        return redirect()->route('kategori.index')
+        return redirect()
+            ->route('kategori.index')
             ->with('success', 'Kategori berhasil diperbarui.');
     }
 
@@ -72,7 +83,8 @@ class KategoriController extends Controller
     {
         $kategori->delete();
 
-        return redirect()->route('kategori.index')
+        return redirect()
+            ->route('kategori.index')
             ->with('success', 'Kategori berhasil dihapus.');
     }
 }

@@ -21,19 +21,25 @@ class Buku extends Model
         'deskripsi',
     ];
 
-    // Relasi ke Kategori
+    /**
+     * Relasi ke tabel kategori
+     */
     public function kategori()
     {
         return $this->belongsTo(Kategori::class);
     }
 
-    // Relasi ke Keranjang
+    /**
+     * Relasi ke keranjang
+     */
     public function keranjangs()
     {
         return $this->hasMany(Keranjang::class);
     }
 
-    // Relasi ke Detail Transaksi
+    /**
+     * Relasi ke detail transaksi
+     */
     public function detailTransaksis()
     {
         return $this->hasMany(DetailTransaksi::class);
